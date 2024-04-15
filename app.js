@@ -8,6 +8,7 @@ const { getTopics } = require("./controller/topics.controller");
 const {
   getArticles,
   getArticleById,
+  getCommentsByArticleId
 } = require("./controller/articles.controller");
 
 const app = express();
@@ -22,6 +23,8 @@ app.get("/api/topics", getTopics);
 app.get("/api/articles", getArticles);
 
 app.get("/api/articles/:article_id", getArticleById);
+
+app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 
 app.all("/*", (req, res, next) => {
   next({ status: 404, msg: "not found" });
