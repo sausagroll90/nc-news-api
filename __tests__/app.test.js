@@ -17,9 +17,21 @@ describe("invalid endpoint", () => {
     return request(app)
       .get("/api/this-endpoint-doesnt-exist")
       .expect(404)
-      .then(({body}) => {
-        const { msg } = body
-        expect(msg).toBe("not found")
+      .then(({ body }) => {
+        const { msg } = body;
+        expect(msg).toBe("not found");
+      });
+  });
+});
+
+describe("/api", () => {
+  test("GET 200: responds with object documenting all available endpoints on API", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body }) => {
+        const endpoints = require("../endpoints.json")
+        expect(body).toEqual(endpoints)
       });
   });
 });
