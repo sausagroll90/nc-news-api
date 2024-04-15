@@ -60,11 +60,11 @@ describe("/api/articles/:article_id", () => {
       .then(({ body }) => {
         const { article } = body;
         const expected = {
-          author: "icellusedkars",
-          title: "Eight pug gifs that remind me of mitch",
           article_id: 3,
-          body: "some gifs",
+          title: "Eight pug gifs that remind me of mitch",
           topic: "mitch",
+          author: "icellusedkars",
+          body: "some gifs",
           created_at: "2020-11-03T09:12:00.000Z",
           votes: 0,
           article_img_url:
