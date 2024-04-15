@@ -1,4 +1,5 @@
 const express = require("express");
+const { handleCustomError, handlePostgreSQLError, handleOtherError } = require("./middleware");
 const { getTopics } = require("./controller/topics.controller");
 const { getArticleById } = require("./controller/articles.controller");
 
@@ -17,27 +18,10 @@ app.all("/*", (req, res, next) => {
   next({ status: 404, msg: "not found" });
 });
 
-app.use((err, req, res, next) => {
-  if (err.status && err.msg) {
-    res.status(err.status).send({ msg: err.msg });
-  } else {
-    next(err)
-  }
-});
+app.use(handleCustomError);
 
-app.use((err, req, res, next) => {
-  switch (err.code) {
-    case "22P02":
-      res.status(400).send({ msg: "bad request" })
-      break;
-    default:
-      next(err)
-  }
-})
+app.use(handlePostgreSQLError)
 
-app.use((err, req, res, next) => {
-  console.log("Internal server error -->", err);
-  res.status(500).send({ msg: "internal server error" });
-});
+app.use(handleOtherError);
 
 module.exports = app;
