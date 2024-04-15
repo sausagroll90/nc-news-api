@@ -36,5 +36,14 @@ exports.selectCommentsByArticleId = async (id) => {
     ORDER BY created_at DESC`,
     [id]
   );
-  return rows
+  if (rows.length === 0) {
+    const article = await db.query(
+      `SELECT * FROM articles WHERE article_id=$1`,
+      [id]
+    );
+    if (article.rows.length === 0) {
+      return Promise.reject({ status: 404, msg: "not found" });
+    }
+  }
+  return rows;
 };

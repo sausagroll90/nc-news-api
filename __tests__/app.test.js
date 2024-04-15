@@ -73,6 +73,7 @@ describe("/api/articles", () => {
         });
       });
   });
+
   test("GET 200: articles should be sorted by date in descending order", () => {
     return request(app)
       .get("/api/articles")
@@ -105,6 +106,7 @@ describe("/api/articles/:article_id", () => {
         expect(article).toMatchObject(expected);
       });
   });
+
   test("GET 400: when given id is not a number", () => {
     return request(app)
       .get("/api/articles/mitchgifs")
@@ -114,6 +116,7 @@ describe("/api/articles/:article_id", () => {
         expect(msg).toBe("bad request");
       });
   });
+
   test("GET 404: when no article exists with given id", () => {
     return request(app)
       .get("/api/articles/100000")
@@ -143,6 +146,7 @@ describe("/api/articles/:article_id/comments", () => {
         });
       });
   });
+
   test("GET 200: comments should be sorted by most recent first", () => {
     return request(app)
       .get("/api/articles/1/comments")
@@ -154,4 +158,30 @@ describe("/api/articles/:article_id/comments", () => {
       });
   });
 
+  test("GET 400: when article_id is invalid", () => {
+    return request(app)
+      .get("/api/articles/test_invalid_article/comments")
+      .expect(400)
+      .then(({ body }) => {
+        const { msg } = body;
+        expect(msg).toBe("bad request");
+      });
+  });
+
+  test("GET 404: when no article exists with given id", () => {
+    return request(app)
+      .get("/api/articles/4444/comments")
+      .expect(404)
+      .then(({ body }) => {
+        const { msg } = body;
+        expect(msg).toBe("not found");
+      });
+  });
+
+  test("GET 200: responds with empty array when article id exists but there are no comments", () => {
+    return request(app).get("/api/articles/2/comments").expect(200).then(({ body }) => {
+      const { comments } = body
+      expect(comments).toEqual([])
+    })
+  });
 });
