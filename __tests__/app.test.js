@@ -3,6 +3,7 @@ const request = require("supertest");
 const seed = require("../db/seeds/seed");
 const data = require("../db/data/test-data");
 const db = require("../db/connection");
+const { checkArticleExists } = require("../model/utils.model")
 
 beforeEach(() => {
   return seed(data);
@@ -330,7 +331,7 @@ describe("/api/articles/:article_id/comments", () => {
         });
     });
 
-    test("400: when article_id is valid but article doesn't exist", () => {
+    test("404: when article_id is valid but article doesn't exist", () => {
       const testBody = {
         username: "butter_bridge",
         body: "this is a good article",
@@ -338,13 +339,13 @@ describe("/api/articles/:article_id/comments", () => {
       return request(app)
         .post("/api/articles/100000/comments")
         .send(testBody)
-        .expect(400)
+        .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("bad request");
+          expect(msg).toBe("article not found");
         });
     });
 
-    test("400: when username doesn't exist", () => {
+    test("404: when username doesn't exist", () => {
       const testBody = {
         username: "idontexist",
         body: "this is a bad article :(",
@@ -352,9 +353,9 @@ describe("/api/articles/:article_id/comments", () => {
       return request(app)
         .post("/api/articles/1/comments")
         .send(testBody)
-        .expect(400)
+        .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("bad request");
+          expect(msg).toBe("username not found");
         });
     });
 
@@ -391,4 +392,16 @@ describe("/api/articles/:article_id/comments", () => {
         });
     });
   });
+});
+
+describe("checkArticleExists", () => {
+  test("resolves to true if article exists", async () => {
+    const exists = await checkArticleExists(3)
+    expect(exists).toBe(true)
+  });
+
+  test("resolves to false if article doesn't exist", async () => {
+    const exists = await checkArticleExists(99999)
+    expect(exists).toBe(false)
+  })
 });

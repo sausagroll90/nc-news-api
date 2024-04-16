@@ -10,7 +10,6 @@ exports.handlePostgreSQLError = (err, req, res, next) => {
   switch (err.code) {
     case "22P02":
     case "23502":
-    case "23503":
       res.status(400).send({ msg: "bad request" });
       break;
     default:
