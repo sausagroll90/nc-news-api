@@ -27,7 +27,7 @@ app.get("/api/articles/:article_id", getArticleById);
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 
 app.all("/*", (req, res, next) => {
-  next({ status: 404, msg: "not found" });
+  next({ status: 404, msg: "resource not found" });
 });
 
 app.use(handleCustomError);

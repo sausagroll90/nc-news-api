@@ -9,7 +9,7 @@ exports.handleCustomError = (err, req, res, next) => {
 exports.handlePostgreSQLError = (err, req, res, next) => {
   switch (err.code) {
     case "22P02":
-      res.status(400).send({ msg: "bad request" });
+      res.status(400).send({ msg: "invalid id" });
       break;
     default:
       next(err);
