@@ -151,6 +151,28 @@ describe("/api/articles/:article_id", () => {
           expect(article).toMatchObject(expected);
         });
     });
+
+    test("400: when article_id is invalid", () => {
+      const testBody = { inc_votes: 1 };
+      return request(app)
+        .patch("/api/articles/invalid_article")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("404: when article_id is valid but doesn't exist", () => {
+      const testBody = { inc_votes: 1 };
+      return request(app)
+        .patch("/api/articles/99999")
+        .send(testBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("article not found");
+        });
+    });
   });
 });
 

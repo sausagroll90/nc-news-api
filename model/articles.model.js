@@ -36,5 +36,8 @@ exports.updateArticleVotes = async (id, { inc_votes }) => {
     RETURNING article_id, title, topic, author, body, created_at, votes, article_img_url`,
     [inc_votes, id]
   );
+  if (rows.length === 0) {
+    return Promise.reject({ status: 404, msg: "article not found" });
+  }
   return rows[0];
 };
