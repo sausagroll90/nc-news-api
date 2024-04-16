@@ -420,6 +420,24 @@ describe("/api/comments/:comment_id", () => {
   });
 });
 
+describe("/api/users", () => {
+  describe("GET", () => {
+    test("200: responds with array of users", () => {
+      return request(app)
+        .get("/api/users")
+        .expect(200)
+        .then(({ body: { users } }) => {
+          expect(users.length).toBe(4);
+          users.forEach((user) => {
+            expect(user.username).toBeString();
+            expect(user.name).toBeString();
+            expect(user.avatar_url).toBeString();
+          });
+        });
+    });
+  });
+});
+
 describe("checkArticleExists", () => {
   test("resolves to true if article exists", async () => {
     const exists = await checkArticleExists(3);
