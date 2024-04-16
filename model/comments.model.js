@@ -10,7 +10,7 @@ exports.selectCommentsByArticleId = async (id) => {
     [id]
   );
   if (rows.length === 0) {
-    const articleExists = await checkArticleExists(id)
+    const articleExists = await checkArticleExists(id);
     if (!articleExists) {
       return Promise.reject({ status: 404, msg: "article not found" });
     }
@@ -42,4 +42,14 @@ exports.insertComment = async (requestBody, article_id) => {
     throw err;
   }
   return rows[0];
+};
+
+exports.removeComment = async (id) => {
+  const { rows } = await db.query(
+    "DELETE FROM comments WHERE comment_id=$1 RETURNING *",
+    [id]
+  );
+  if (rows.length === 0) {
+    return Promise.reject({ status: 404, msg: "comment not found" });
+  }
 };
