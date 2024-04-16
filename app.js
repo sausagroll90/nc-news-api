@@ -15,6 +15,7 @@ const {
   postComment,
   deleteComment,
 } = require("./controller/comments.controller");
+const { getUsers } = require("./controller/users.controller");
 
 const app = express();
 
@@ -36,6 +37,8 @@ app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 app.post("/api/articles/:article_id/comments", postComment);
 
 app.delete("/api/comments/:comment_id", deleteComment);
+
+app.get("/api/users", getUsers);
 
 app.all("/*", (req, res, next) => {
   next({ status: 404, msg: "resource not found" });
