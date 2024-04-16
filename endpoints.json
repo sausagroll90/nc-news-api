@@ -11,7 +11,6 @@
   },
   "GET /api/articles/:article_id": {
     "description": "serves a json representation of the article with the given id",
-    "queries": [],
     "exampleResponse": {
       "article": {
         "article_id": 7,
@@ -25,13 +24,12 @@
       }
     }
   },
-  "PATCH /api/articles/:article_id":{
+  "PATCH /api/articles/:article_id": {
     "description": "update an article",
-    "queries": [],
-    "requestBodyFormat":{
+    "requestBodyFormat": {
       "inc_votes": 1
     },
-    "exampleResponse":{
+    "exampleResponse": {
       "article": {
         "article_id": 7,
         "title": "Seafood substitutions are increasing",
@@ -64,7 +62,6 @@
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves an array of all comments on an article",
-    "queries": [],
     "exampleResponse": {
       "comments": [
         {
@@ -80,7 +77,6 @@
   },
   "POST /api/articles/:article_id/comments": {
     "description": "adds a comment to an article",
-    "queries": [],
     "requestBodyFormat": {
       "username": "example_username",
       "body": "example_body"
@@ -95,5 +91,8 @@
         "votes": 0
       }
     }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "deletes a comment"
   }
 }

@@ -13,6 +13,7 @@ const {
 const {
   getCommentsByArticleId,
   postComment,
+  deleteComment,
 } = require("./controller/comments.controller");
 
 const app = express();
@@ -33,6 +34,8 @@ app.patch("/api/articles/:article_id", patchArticle);
 
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 app.post("/api/articles/:article_id/comments", postComment);
+
+app.delete("/api/comments/:comment_id", deleteComment);
 
 app.all("/*", (req, res, next) => {
   next({ status: 404, msg: "resource not found" });

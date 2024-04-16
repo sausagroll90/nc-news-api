@@ -3,7 +3,7 @@ const request = require("supertest");
 const seed = require("../db/seeds/seed");
 const data = require("../db/data/test-data");
 const db = require("../db/connection");
-const { checkArticleExists } = require("../model/utils.model")
+const { checkArticleExists } = require("../model/utils.model");
 
 beforeEach(() => {
   return seed(data);
@@ -394,14 +394,40 @@ describe("/api/articles/:article_id/comments", () => {
   });
 });
 
+describe("/api/comments/:comment_id", () => {
+  describe("DELETE", () => {
+    test("204: delete successful", () => {
+      return request(app).delete("/api/comments/10").expect(204);
+    });
+
+    test("400: when comment_id is invalid", () => {
+      return request(app)
+        .delete("/api/comments/bad_comment")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("404: when comment_id is valid but comment doesn't exist", () => {
+      return request(app)
+        .delete("/api/comments/1000000")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("comment not found");
+        });
+    });
+  });
+});
+
 describe("checkArticleExists", () => {
   test("resolves to true if article exists", async () => {
-    const exists = await checkArticleExists(3)
-    expect(exists).toBe(true)
+    const exists = await checkArticleExists(3);
+    expect(exists).toBe(true);
   });
 
   test("resolves to false if article doesn't exist", async () => {
-    const exists = await checkArticleExists(99999)
-    expect(exists).toBe(false)
-  })
+    const exists = await checkArticleExists(99999);
+    expect(exists).toBe(false);
+  });
 });
