@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const { checkArticleExists } = require("./utils.model");
 
 exports.selectCommentsByArticleId = async (id) => {
   const { rows } = await db.query(
@@ -9,11 +10,8 @@ exports.selectCommentsByArticleId = async (id) => {
     [id]
   );
   if (rows.length === 0) {
-    const { rows: articles } = await db.query(
-      `SELECT * FROM articles WHERE article_id=$1`,
-      [id]
-    );
-    if (articles.length === 0) {
+    const articleExists = await checkArticleExists(id)
+    if (!articleExists) {
       return Promise.reject({ status: 404, msg: "article not found" });
     }
   }
@@ -21,14 +19,27 @@ exports.selectCommentsByArticleId = async (id) => {
 };
 
 exports.insertComment = async (requestBody, article_id) => {
-  const { rows } = await db.query(
-    `INSERT INTO comments
+  let rows;
+  try {
+    const queryResult = await db.query(
+      `INSERT INTO comments
     (body, author, article_id)
     VALUES
     ($1, $2, $3)
     RETURNING *`,
-    [requestBody.body, requestBody.username, article_id]
-  );
+      [requestBody.body, requestBody.username, article_id]
+    );
+    rows = queryResult.rows;
+  } catch (err) {
+    if (err.code === "23503") {
+      const articleExists = await checkArticleExists(article_id);
+      if (!articleExists) {
+        return Promise.reject({ status: 404, msg: "article not found" });
+      } else {
+        return Promise.reject({ status: 404, msg: "username not found" });
+      }
+    }
+    throw err;
+  }
   return rows[0];
 };
-
