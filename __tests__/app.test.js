@@ -54,35 +54,85 @@ describe("/api/topics", () => {
 });
 
 describe("/api/articles", () => {
-  test("GET: 200 responds with an array of all articles", () => {
-    return request(app)
-      .get("/api/articles")
-      .expect(200)
-      .then(({ body }) => {
-        const { articles } = body;
-        expect(articles.length).toBe(13);
-        articles.forEach((article) => {
-          expect(typeof article.article_id).toBe("number");
-          expect(typeof article.title).toBe("string");
-          expect(typeof article.topic).toBe("string");
-          expect(typeof article.author).toBe("string");
-          expect(typeof article.created_at).toBe("string");
-          expect(typeof article.votes).toBe("number");
-          expect(typeof article.article_img_url).toBe("string");
-          expect(typeof article.comment_count).toBe("number");
-          expect(article.body).toBe(undefined);
+  describe("GET", () => {
+    test("200: responds with an array of all articles", () => {
+      return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+          articles.forEach((article) => {
+            expect(typeof article.article_id).toBe("number");
+            expect(typeof article.title).toBe("string");
+            expect(typeof article.topic).toBe("string");
+            expect(typeof article.author).toBe("string");
+            expect(typeof article.created_at).toBe("string");
+            expect(typeof article.votes).toBe("number");
+            expect(typeof article.article_img_url).toBe("string");
+            expect(typeof article.comment_count).toBe("number");
+            expect(article.body).toBe(undefined);
+          });
         });
-      });
-  });
+    });
 
-  test("GET 200: articles should be sorted by date in descending order", () => {
-    return request(app)
-      .get("/api/articles")
-      .expect(200)
-      .then(({ body }) => {
-        const { articles } = body;
-        expect(articles).toBeSortedBy("created_at", { descending: true });
-      });
+    test("200: articles should be sorted by date in descending order", () => {
+      return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("created_at", { descending: true });
+        });
+    });
+
+    test("200: ignores invalid query parameter", () => {
+      return request(app)
+        .get("/api/articles?not_valid=test")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(13);
+        });
+    });
+
+    test("200: topic query: should only list articles wih given topic", () => {
+      return request(app)
+        .get("/api/articles?topic=cats")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(1);
+          expect(articles[0].topic).toBe("cats");
+        });
+    });
+
+    test("200: topic query: results should still be in descending date order", () => {
+      return request(app)
+        .get("/api/articles?topic=mitch")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(12);
+          articles.forEach((article) => {
+            expect(article.topic).toBe("mitch");
+          });
+          expect(articles).toBeSortedBy("created_at", { descending: true });
+        });
+    });
+
+    test("404: topic query: when given topic that doesn't exist", () => {
+      return request(app)
+        .get("/api/articles?topic=nonexistant_topic")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("topic not found");
+        });
+    });
+
+    test("200: topic query: when topic exists but doesn't have any articles", () => {
+      return request(app)
+        .get("/api/articles?topic=paper")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles.length).toBe(0);
+        });
+    });
   });
 });
 

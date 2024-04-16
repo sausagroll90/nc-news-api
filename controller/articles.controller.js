@@ -5,8 +5,12 @@ const {
 } = require("../model/articles.model.js");
 
 exports.getArticles = async (req, res, next) => {
-  const articles = await selectArticles();
-  res.status(200).send({ articles });
+  try {
+    const articles = await selectArticles(req.query);
+    res.status(200).send({ articles });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.getArticleById = async (req, res, next) => {
@@ -25,6 +29,6 @@ exports.patchArticle = async (req, res, next) => {
     const article = await updateArticleVotes(article_id, req.body);
     res.status(200).send({ article });
   } catch (err) {
-    next(err)
+    next(err);
   }
 };

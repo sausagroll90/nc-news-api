@@ -1,17 +1,40 @@
 const db = require("../db/connection");
 
-exports.selectArticles = async () => {
-  const { rows } = await db.query(
-    `SELECT articles.article_id, title, topic, articles.author, articles.created_at, articles.votes, article_img_url, COUNT(comment_id) AS comment_count
-    FROM articles
-    LEFT OUTER JOIN comments
-    ON articles.article_id=comments.article_id
-    GROUP BY articles.article_id
-    ORDER BY articles.created_at DESC`
-  );
+exports.selectArticles = async (queryParams) => {
+  const { topic } = queryParams;
+  const values = [];
+
+  let queryStr = `SELECT articles.article_id, title, topic, articles.author, articles.created_at, articles.votes, article_img_url, COUNT(comment_id) AS comment_count
+  FROM articles
+  LEFT OUTER JOIN comments
+  ON articles.article_id=comments.article_id`;
+
+  if (topic) {
+    queryStr += " WHERE topic=$1";
+    values.push(topic);
+  }
+
+  queryStr += ` GROUP BY articles.article_id
+  ORDER BY articles.created_at DESC`;
+
+  const { rows } = await db.query(queryStr, values);
+
+  // TODO Refactor to use checkArticleExists (but made more general)
+  // checkExists(table, col_name, value)
+  if (rows.length === 0) {
+    const { rows: topics } = await db.query(
+      "SELECT * FROM topics WHERE slug=$1",
+      [topic]
+    );
+    if (topics.length === 0) {
+      return Promise.reject({ status: 404, msg: "topic not found" });
+    }
+  }
+
   rows.forEach((row) => {
     row.comment_count = Number(row.comment_count);
   });
+
   return rows;
 };
 
