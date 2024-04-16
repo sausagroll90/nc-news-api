@@ -130,7 +130,7 @@ describe("/api/articles/:article_id", () => {
   });
 
   describe("PATCH", () => {
-    test("200: responds with updated article", () => {
+    test("200: responds with updated article with updated votes", () => {
       const testBody = { inc_votes: 1 };
       const expected = {
         article_id: 3,
@@ -140,6 +140,28 @@ describe("/api/articles/:article_id", () => {
         body: "some gifs",
         created_at: "2020-11-03T09:12:00.000Z",
         votes: 1,
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article).toMatchObject(expected);
+        });
+    });
+
+    test("200: can also decrease votes", () => {
+      const testBody = { inc_votes: -5 };
+      const expected = {
+        article_id: 3,
+        title: "Eight pug gifs that remind me of mitch",
+        topic: "mitch",
+        author: "icellusedkars",
+        body: "some gifs",
+        created_at: "2020-11-03T09:12:00.000Z",
+        votes: -5,
         article_img_url:
           "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
       };
@@ -171,6 +193,39 @@ describe("/api/articles/:article_id", () => {
         .expect(404)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("article not found");
+        });
+    });
+
+    test("400: when missing inc_votes on body", () => {
+      const testBody = {};
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("400: when inc_votes is invalid data type (string)", () => {
+      const testBody = { inc_votes: "one thousand" };
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("400: when inc_votes is invalid data type (decimal)", () => {
+      const testBody = { inc_votes: 1.5 };
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
         });
     });
   });
