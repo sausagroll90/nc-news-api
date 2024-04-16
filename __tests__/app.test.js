@@ -19,7 +19,7 @@ describe("invalid endpoint", () => {
       .expect(404)
       .then(({ body }) => {
         const { msg } = body;
-        expect(msg).toBe("not found");
+        expect(msg).toBe("resource not found");
       });
   });
 });
@@ -113,7 +113,7 @@ describe("/api/articles/:article_id", () => {
       .expect(400)
       .then(({ body }) => {
         const { msg } = body;
-        expect(msg).toBe("bad request");
+        expect(msg).toBe("invalid id");
       });
   });
 
@@ -123,7 +123,7 @@ describe("/api/articles/:article_id", () => {
       .expect(404)
       .then(({ body }) => {
         const { msg } = body;
-        expect(msg).toBe("not found");
+        expect(msg).toBe("article not found");
       });
   });
 });
@@ -164,7 +164,7 @@ describe("/api/articles/:article_id/comments", () => {
       .expect(400)
       .then(({ body }) => {
         const { msg } = body;
-        expect(msg).toBe("bad request");
+        expect(msg).toBe("invalid id");
       });
   });
 
@@ -174,7 +174,7 @@ describe("/api/articles/:article_id/comments", () => {
       .expect(404)
       .then(({ body }) => {
         const { msg } = body;
-        expect(msg).toBe("not found");
+        expect(msg).toBe("article not found");
       });
   });
 
