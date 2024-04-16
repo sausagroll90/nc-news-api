@@ -8,10 +8,15 @@ const { getTopics } = require("./controller/topics.controller");
 const {
   getArticles,
   getArticleById,
-  getCommentsByArticleId
 } = require("./controller/articles.controller");
+const {
+  getCommentsByArticleId,
+  postComment,
+} = require("./controller/comments.controller");
 
 const app = express();
+
+app.use(express.json());
 
 app.get("/api", (req, res, next) => {
   const endpoints = require("./endpoints.json");
@@ -25,6 +30,7 @@ app.get("/api/articles", getArticles);
 app.get("/api/articles/:article_id", getArticleById);
 
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
+app.post("/api/articles/:article_id/comments", postComment);
 
 app.all("/*", (req, res, next) => {
   next({ status: 404, msg: "resource not found" });
