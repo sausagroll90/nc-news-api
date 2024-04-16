@@ -86,45 +86,148 @@ describe("/api/articles", () => {
 });
 
 describe("/api/articles/:article_id", () => {
-  test("GET 200: responds with article of given id", () => {
-    return request(app)
-      .get("/api/articles/3")
-      .expect(200)
-      .then(({ body }) => {
-        const { article } = body;
-        const expected = {
-          article_id: 3,
-          title: "Eight pug gifs that remind me of mitch",
-          topic: "mitch",
-          author: "icellusedkars",
-          body: "some gifs",
-          created_at: "2020-11-03T09:12:00.000Z",
-          votes: 0,
-          article_img_url:
-            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-        };
-        expect(article).toMatchObject(expected);
-      });
+  describe("GET", () => {
+    test("200: responds with article of given id", () => {
+      const expected = {
+        article_id: 3,
+        title: "Eight pug gifs that remind me of mitch",
+        topic: "mitch",
+        author: "icellusedkars",
+        body: "some gifs",
+        created_at: "2020-11-03T09:12:00.000Z",
+        votes: 0,
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .get("/api/articles/3")
+        .expect(200)
+        .then(({ body }) => {
+          const { article } = body;
+          expect(article).toMatchObject(expected);
+        });
+    });
+
+    test("GET 400: when given id is not a number", () => {
+      return request(app)
+        .get("/api/articles/mitchgifs")
+        .expect(400)
+        .then(({ body }) => {
+          const { msg } = body;
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("GET 404: when no article exists with given id", () => {
+      return request(app)
+        .get("/api/articles/100000")
+        .expect(404)
+        .then(({ body }) => {
+          const { msg } = body;
+          expect(msg).toBe("article not found");
+        });
+    });
   });
 
-  test("GET 400: when given id is not a number", () => {
-    return request(app)
-      .get("/api/articles/mitchgifs")
-      .expect(400)
-      .then(({ body }) => {
-        const { msg } = body;
-        expect(msg).toBe("bad request");
-      });
-  });
+  describe("PATCH", () => {
+    test("200: responds with updated article with updated votes", () => {
+      const testBody = { inc_votes: 1 };
+      const expected = {
+        article_id: 3,
+        title: "Eight pug gifs that remind me of mitch",
+        topic: "mitch",
+        author: "icellusedkars",
+        body: "some gifs",
+        created_at: "2020-11-03T09:12:00.000Z",
+        votes: 1,
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article).toMatchObject(expected);
+        });
+    });
 
-  test("GET 404: when no article exists with given id", () => {
-    return request(app)
-      .get("/api/articles/100000")
-      .expect(404)
-      .then(({ body }) => {
-        const { msg } = body;
-        expect(msg).toBe("article not found");
-      });
+    test("200: can also decrease votes", () => {
+      const testBody = { inc_votes: -5 };
+      const expected = {
+        article_id: 3,
+        title: "Eight pug gifs that remind me of mitch",
+        topic: "mitch",
+        author: "icellusedkars",
+        body: "some gifs",
+        created_at: "2020-11-03T09:12:00.000Z",
+        votes: -5,
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article).toMatchObject(expected);
+        });
+    });
+
+    test("400: when article_id is invalid", () => {
+      const testBody = { inc_votes: 1 };
+      return request(app)
+        .patch("/api/articles/invalid_article")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("404: when article_id is valid but doesn't exist", () => {
+      const testBody = { inc_votes: 1 };
+      return request(app)
+        .patch("/api/articles/99999")
+        .send(testBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("article not found");
+        });
+    });
+
+    test("400: when missing inc_votes on body", () => {
+      const testBody = {};
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("400: when inc_votes is invalid data type (string)", () => {
+      const testBody = { inc_votes: "one thousand" };
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("400: when inc_votes is invalid data type (decimal)", () => {
+      const testBody = { inc_votes: 1.5 };
+      return request(app)
+        .patch("/api/articles/3")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
   });
 });
 
