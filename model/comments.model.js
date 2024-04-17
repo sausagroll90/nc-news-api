@@ -1,5 +1,5 @@
 const db = require("../db/connection");
-const { checkArticleExists } = require("./utils.model");
+const { checkExists } = require("./utils.model");
 
 exports.selectCommentsByArticleId = async (id) => {
   const { rows } = await db.query(
@@ -10,7 +10,7 @@ exports.selectCommentsByArticleId = async (id) => {
     [id]
   );
   if (rows.length === 0) {
-    const articleExists = await checkArticleExists(id);
+    const articleExists = await checkExists("articles", "article_id", id);
     if (!articleExists) {
       return Promise.reject({ status: 404, msg: "article not found" });
     }
@@ -32,7 +32,11 @@ exports.insertComment = async (requestBody, article_id) => {
     rows = queryResult.rows;
   } catch (err) {
     if (err.code === "23503") {
-      const articleExists = await checkArticleExists(article_id);
+      const articleExists = await checkExists(
+        "articles",
+        "article_id",
+        article_id
+      );
       if (!articleExists) {
         return Promise.reject({ status: 404, msg: "article not found" });
       } else {
