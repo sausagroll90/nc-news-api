@@ -93,7 +93,7 @@ describe("/api/articles", () => {
         });
     });
 
-    test("200: topic query: should only list articles wih given topic", () => {
+    test("200: topic query: should only list articles with given topic", () => {
       return request(app)
         .get("/api/articles?topic=cats")
         .expect(200)
