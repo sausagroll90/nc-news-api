@@ -20,7 +20,8 @@
         "body": "Text from the article..",
         "created_at": "2018-05-30T15:59:13.341Z",
         "votes": 0,
-        "article_img_url": "https://example.com/photos/1323/example.jpeg"
+        "article_img_url": "https://example.com/photos/1323/example.jpeg",
+        "comment_count": 20
       }
     }
   },
