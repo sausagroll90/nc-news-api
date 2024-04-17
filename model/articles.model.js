@@ -1,5 +1,5 @@
 const db = require("../db/connection");
-const { checkExists } = require("./utils.model")
+const { checkExists } = require("./utils.model");
 
 exports.selectArticles = async (queryParams) => {
   const { topic } = queryParams;
@@ -21,7 +21,7 @@ exports.selectArticles = async (queryParams) => {
   const { rows } = await db.query(queryStr, values);
 
   if (rows.length === 0) {
-    const topicExists = await checkExists("topics", "slug", topic)
+    const topicExists = await checkExists("topics", "slug", topic);
     if (!topicExists) {
       return Promise.reject({ status: 404, msg: "topic not found" });
     }
@@ -36,9 +36,12 @@ exports.selectArticles = async (queryParams) => {
 
 exports.selectArticleById = async (id) => {
   const { rows } = await db.query(
-    `SELECT article_id, title, topic, author, body, created_at, votes, article_img_url
+    `SELECT articles.article_id, title, topic, articles.author, articles.body, articles.created_at, articles.votes, article_img_url, COUNT(comment_id)::INT AS comment_count
     FROM articles
-    WHERE article_id=$1`,
+    LEFT OUTER JOIN comments
+    ON articles.article_id=comments.article_id
+    WHERE articles.article_id=$1
+    GROUP BY articles.article_id`,
     [id]
   );
   if (rows.length === 0) {

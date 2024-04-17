@@ -153,29 +153,44 @@ describe("/api/articles/:article_id", () => {
       return request(app)
         .get("/api/articles/3")
         .expect(200)
-        .then(({ body }) => {
-          const { article } = body;
+        .then(({ body: { article } }) => {
           expect(article).toMatchObject(expected);
         });
     });
 
-    test("GET 400: when given id is not a number", () => {
+    test("400: when given id is not a number", () => {
       return request(app)
         .get("/api/articles/mitchgifs")
         .expect(400)
-        .then(({ body }) => {
-          const { msg } = body;
+        .then(({ body: { msg } }) => {
           expect(msg).toBe("bad request");
         });
     });
 
-    test("GET 404: when no article exists with given id", () => {
+    test("404: when no article exists with given id", () => {
       return request(app)
         .get("/api/articles/100000")
         .expect(404)
-        .then(({ body }) => {
-          const { msg } = body;
+        .then(({ body: { msg } }) => {
           expect(msg).toBe("article not found");
+        });
+    });
+
+    test("200: response object should have comment_count key", () => {
+      return request(app)
+        .get("/api/articles/9")
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article.comment_count).toBe(2);
+        });
+    });
+
+    test("200: response object should have comment_count key when article has no comments", () => {
+      return request(app)
+        .get("/api/articles/2")
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article.comment_count).toBe(0);
         });
     });
   });
