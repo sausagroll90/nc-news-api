@@ -5,7 +5,7 @@ exports.selectArticles = async (queryParams) => {
   const { topic } = queryParams;
   const values = [];
 
-  let queryStr = `SELECT articles.article_id, title, topic, articles.author, articles.created_at, articles.votes, article_img_url, COUNT(comment_id) AS comment_count
+  let queryStr = `SELECT articles.article_id, title, topic, articles.author, articles.created_at, articles.votes, article_img_url, COUNT(comment_id)::INT AS comment_count
   FROM articles
   LEFT OUTER JOIN comments
   ON articles.article_id=comments.article_id`;
@@ -26,10 +26,6 @@ exports.selectArticles = async (queryParams) => {
       return Promise.reject({ status: 404, msg: "topic not found" });
     }
   }
-
-  rows.forEach((row) => {
-    row.comment_count = Number(row.comment_count);
-  });
 
   return rows;
 };
