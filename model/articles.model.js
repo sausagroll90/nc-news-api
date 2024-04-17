@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const { checkExists } = require("./utils.model")
 
 exports.selectArticles = async (queryParams) => {
   const { topic } = queryParams;
@@ -19,14 +20,9 @@ exports.selectArticles = async (queryParams) => {
 
   const { rows } = await db.query(queryStr, values);
 
-  // TODO Refactor to use checkArticleExists (but made more general)
-  // checkExists(table, col_name, value)
   if (rows.length === 0) {
-    const { rows: topics } = await db.query(
-      "SELECT * FROM topics WHERE slug=$1",
-      [topic]
-    );
-    if (topics.length === 0) {
+    const topicExists = await checkExists("topics", "slug", topic)
+    if (!topicExists) {
       return Promise.reject({ status: 404, msg: "topic not found" });
     }
   }

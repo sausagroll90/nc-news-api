@@ -3,7 +3,7 @@ const request = require("supertest");
 const seed = require("../db/seeds/seed");
 const data = require("../db/data/test-data");
 const db = require("../db/connection");
-const { checkArticleExists } = require("../model/utils.model");
+const { checkArticleExists, checkExists } = require("../model/utils.model");
 
 beforeEach(() => {
   return seed(data);
@@ -488,14 +488,20 @@ describe("/api/users", () => {
   });
 });
 
-describe("checkArticleExists", () => {
-  test("resolves to true if article exists", async () => {
-    const exists = await checkArticleExists(3);
-    expect(exists).toBe(true);
+describe("checkExists", () => {
+  test("resolves to true if given table contains row where given column = given value", async () => {
+    const articleExists = await checkExists("articles", "article_id", 3);
+    expect(articleExists).toBe(true);
+
+    const topicExists = await checkExists("topics", "slug", "mitch");
+    expect(topicExists).toBe(true);
   });
 
-  test("resolves to false if article doesn't exist", async () => {
-    const exists = await checkArticleExists(99999);
-    expect(exists).toBe(false);
+  test("resolves to false if given table doesn't contain row where given column = given value", async () => {
+    const articleExists = await checkExists("articles", "article_id", 99999);
+    expect(articleExists).toBe(false);
+
+    const userExists = await checkExists("users", "username", "BigDog777");
+    expect(userExists).toBe(false);
   });
 });
