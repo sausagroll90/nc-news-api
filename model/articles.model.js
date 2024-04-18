@@ -2,9 +2,9 @@ const db = require("../db/connection");
 const { checkExists } = require("./utils.model");
 
 exports.selectArticles = async (queryParams) => {
-  const { topic, order = "desc" } = queryParams;
+  const { topic, order = "desc", p, limit = 10 } = queryParams;
   let { sort_by = "created_at" } = queryParams;
-  const values = [];
+  const queryValues = [];
 
   const validCols = [
     "article_id",
@@ -28,16 +28,31 @@ exports.selectArticles = async (queryParams) => {
 
   if (topic) {
     queryStr += " WHERE topic=$1";
-    values.push(topic);
+    queryValues.push(topic);
   }
 
   queryStr += " GROUP BY articles.article_id";
 
   queryStr += ` ORDER BY ${sort_by} ${order.toUpperCase()}`;
 
-  const { rows } = await db.query(queryStr, values);
+  if (p) {
+    if (topic) {
+      queryStr += " LIMIT $2 OFFSET $3";
+      queryValues.push(limit);
+      queryValues.push((p - 1) * limit);
+    } else {
+      queryStr += " LIMIT $1 OFFSET $2";
+      queryValues.push(limit);
+      queryValues.push((p - 1) * limit);
+    }
+  }
+
+  const { rows } = await db.query(queryStr, queryValues);
 
   if (rows.length === 0) {
+    if (!topic) {
+      return Promise.reject({ status: 404, msg: "page not found" });
+    }
     const topicExists = await checkExists("topics", "slug", topic);
     if (!topicExists) {
       return Promise.reject({ status: 404, msg: "topic not found" });
