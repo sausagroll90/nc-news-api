@@ -571,6 +571,31 @@ describe("/api/users", () => {
   });
 });
 
+describe("/api/users/:username", () => {
+  describe("GET", () => {
+    test("200: responds with user object with given username", () => {
+      const expected = {
+        username: "rogersop",
+        name: "paul",
+        avatar_url:
+          "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4",
+      };
+      return request(app)
+        .get("/api/users/rogersop")
+        .expect(200)
+        .then(({ body: { user } }) => {
+          expect(user).toMatchObject(expected);
+        });
+    });
+
+    test("404: when username doesn't exist", () => {
+      return request(app).get("/api/users/BigDog777").expect(404).then(({ body: { msg } }) => {
+        expect(msg).toBe("username not found")
+      })
+    })
+  });
+});
+
 describe("checkExists", () => {
   test("resolves to true if given table contains row where given column = given value", async () => {
     const articleExists = await checkExists("articles", "article_id", 3);

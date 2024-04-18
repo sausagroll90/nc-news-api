@@ -9,6 +9,24 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "GET /api/articles": {
+    "description": "serves an array of all articles, by default sorted by date in descending order",
+    "queries": ["author", "topic", "sort_by", "order"],
+    "exampleResponse": {
+      "articles": [
+        {
+          "article_id": 7,
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "created_at": "2018-05-30T15:59:13.341Z",
+          "votes": 0,
+          "article_img_url": "https://example.com/photos/1323/example.jpeg",
+          "comment_count": 13
+        }
+      ]
+    }
+  },
   "GET /api/articles/:article_id": {
     "description": "serves a json representation of the article with the given id",
     "exampleResponse": {
@@ -41,24 +59,6 @@
         "votes": 1,
         "article_img_url": "https://example.com/photos/1323/example.jpeg"
       }
-    }
-  },
-  "GET /api/articles": {
-    "description": "serves an array of all articles, by default sorted by date in descending order",
-    "queries": ["author", "topic", "sort_by", "order"],
-    "exampleResponse": {
-      "articles": [
-        {
-          "article_id": 7,
-          "title": "Seafood substitutions are increasing",
-          "topic": "cooking",
-          "author": "weegembump",
-          "created_at": "2018-05-30T15:59:13.341Z",
-          "votes": 0,
-          "article_img_url": "https://example.com/photos/1323/example.jpeg",
-          "comment_count": 13
-        }
-      ]
     }
   },
   "GET /api/articles/:article_id/comments": {
@@ -106,6 +106,16 @@
           "avatar_url": "https://example.com/photos/987/example.jpeg"
         }
       ]
+    }
+  },
+  "GET /api/users/:username": {
+    "description": "serves a json representation of the user with the given username",
+    "exampleResponse": {
+      "user": {
+        "username": "example_username",
+        "name": "Example Name",
+        "avatar_url": "https://example.com/photos/987/example.jpeg"
+      }
     }
   }
 }
