@@ -528,6 +528,100 @@ describe("/api/articles/:article_id/comments", () => {
 });
 
 describe("/api/comments/:comment_id", () => {
+  describe("PATCH", () => {
+    test("200: responds with updated comment", () => {
+      const testBody1 = { inc_votes: 1 };
+      const expected1 = {
+        comment_id: 5,
+        body: "I hate streaming noses",
+        author: "icellusedkars",
+        article_id: 1,
+        created_at: expect.any(String),
+        votes: 1,
+      };
+      const test1 = request(app)
+        .patch("/api/comments/5")
+        .send(testBody1)
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toMatchObject(expected1);
+        });
+
+      const testBody2 = { inc_votes: 5 };
+      const test2 = request(app)
+        .patch("/api/comments/5")
+        .send(testBody2)
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment.votes).toBe(6);
+        });
+
+      const testBody3 = { inc_votes: -1 };
+      const test3 = request(app)
+        .patch("/api/comments/5")
+        .send(testBody3)
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment.votes).toBe(5);
+        });
+      return Promise.all([test1, test2, test3]);
+    });
+
+    test("400: when comment_id is invalid", () => {
+      const testBody = { inc_votes: 1 };
+      return request(app)
+        .patch("/api/comments/invalid_id")
+        .send(testBody)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("404: when comment_id is valid but doesn't exist", () => {
+      const testBody = { inc_votes: 1 };
+      return request(app)
+        .patch("/api/comments/523452345")
+        .send(testBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("comment not found");
+        });
+    });
+
+    test("400: when request body is missing inc_votes key", () => {
+      const testBody = {};
+      return request(app)
+        .patch("/api/comments/1")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("400: when inc_votes key on request body is invalid", () => {
+      const testBody1 = { inc_votes: "one" };
+      const test1 = request(app)
+        .patch("/api/comments/1")
+        .send(testBody1)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+
+      const testBody2 = { inc_votes: 0.5 };
+      const test2 = request(app)
+        .patch("/api/comments/1")
+        .send(testBody2)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+
+      return Promise.all([test1, test2]);
+    });
+  });
+
   describe("DELETE", () => {
     test("204: delete successful", () => {
       return request(app).delete("/api/comments/10").expect(204);
@@ -589,10 +683,13 @@ describe("/api/users/:username", () => {
     });
 
     test("404: when username doesn't exist", () => {
-      return request(app).get("/api/users/BigDog777").expect(404).then(({ body: { msg } }) => {
-        expect(msg).toBe("username not found")
-      })
-    })
+      return request(app)
+        .get("/api/users/BigDog777")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("username not found");
+        });
+    });
   });
 });
 

@@ -1,6 +1,7 @@
 const {
   selectCommentsByArticleId,
   insertComment,
+  updateCommentVotes,
   removeComment,
 } = require("../model/comments.model");
 
@@ -21,6 +22,16 @@ exports.postComment = async (req, res, next) => {
     res.status(201).send({ comment });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.patchComment = async (req, res, next) => {
+  const { comment_id } = req.params;
+  try {
+    const comment = await updateCommentVotes(comment_id, req.body);
+    res.status(200).send({ comment });
+  } catch (err) {
+    next(err)
   }
 };
 
