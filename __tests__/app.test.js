@@ -201,6 +201,79 @@ describe("/api/articles", () => {
           });
       });
     });
+
+    describe("?p, ?limit", () => {
+      test("200: responds with articles paginated with given page number b, limit defaults to 10", () => {
+        const test1 = request(app)
+          .get("/api/articles?p=1")
+          .expect(200)
+          .then(({ body }) => {
+            const { articles, total_count } = body;
+            expect(articles.length).toBe(10);
+            expect(total_count).toBe(10);
+          });
+
+        const test2 = request(app)
+          .get("/api/articles?p=2")
+          .expect(200)
+          .then(({ body }) => {
+            const { articles, total_count } = body;
+            expect(articles.length).toBe(3);
+            expect(total_count).toBe(3);
+          });
+
+        return Promise.all([test1, test2]);
+      });
+
+      test("200: can use limit parameter to set article limit for each page", () => {
+        const test1 = request(app)
+          .get("/api/articles?p=1&limit=4")
+          .expect(200)
+          .then(({ body }) => {
+            const { articles, total_count } = body;
+            expect(articles.length).toBe(4);
+            expect(total_count).toBe(4);
+          });
+
+        const test2 = request(app)
+          .get("/api/articles?p=2&limit=5")
+          .expect(200)
+          .then(({ body }) => {
+            const { articles, total_count } = body;
+            expect(articles.length).toBe(5);
+            expect(total_count).toBe(5);
+          });
+
+        return Promise.all([test1, test2]);
+      });
+
+      test("404: when no articles are returned", () => {
+        return request(app)
+          .get("/api/articles?p=6&limit=5")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("page not found");
+          });
+      });
+
+      test("400: when given p is invalid", () => {
+        return request(app)
+          .get("/api/articles?p=not_a_page")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("bad request");
+          });
+      });
+
+      test("400: when given limit is invalid", () => {
+        return request(app)
+          .get("/api/articles?p=1&limit=not_a_limit")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("bad request");
+          });
+      });
+    });
   });
 
   describe("POST", () => {

@@ -8,7 +8,7 @@ const {
 exports.getArticles = async (req, res, next) => {
   try {
     const articles = await selectArticles(req.query);
-    res.status(200).send({ articles });
+    res.status(200).send({ articles, total_count: articles.length });
   } catch (err) {
     next(err);
   }
@@ -17,10 +17,10 @@ exports.getArticles = async (req, res, next) => {
 exports.postArticle = async (req, res, next) => {
   try {
     const article = await insertArticle(req.body);
-    article.comment_count = 0
+    article.comment_count = 0;
     res.status(201).send({ article });
   } catch (err) {
-    next(err)
+    next(err);
   }
 };
 
