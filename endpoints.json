@@ -27,6 +27,29 @@
       ]
     }
   },
+  "POST /api/articles": {
+    "description": "adds an article",
+    "requestBodyFormat": {
+      "title": "Example Title",
+      "topic": "example topic",
+      "author": "example_author",
+      "body": "Example text...",
+      "article_img_url": "https://example.com/photos/1323/example.jpeg"
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 15,
+        "title": "Example Title",
+        "topic": "example topic",
+        "author": "example_author",
+        "body": "Example text...",
+        "article_img_url": "https://example.com/photos/1323/example.jpeg",
+        "created_at": "2018-05-30T15:59:13.341Z",
+        "votes": 0,
+        "comment_count": 0
+      }
+    }
+  },
   "GET /api/articles/:article_id": {
     "description": "serves a json representation of the article with the given id",
     "exampleResponse": {
@@ -93,7 +116,7 @@
       }
     }
   },
-  "PATCH /api/comments/:comment_id":{
+  "PATCH /api/comments/:comment_id": {
     "description": "updates the votes on a comment",
     "requestBodyFormat": {
       "inc_votes": 1
