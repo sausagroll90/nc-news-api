@@ -40,7 +40,7 @@ describe("/api", () => {
 describe("/api/topics", () => {
   test("GET 200: reponds with all topics", () => {
     return request(app)
-      .get("/api/topics")
+      .get("/api/topics/")
       .expect(200)
       .then(({ body }) => {
         const { topics } = body;
