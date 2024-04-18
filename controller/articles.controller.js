@@ -1,5 +1,6 @@
 const {
   selectArticles,
+  insertArticle,
   selectArticleById,
   updateArticleVotes,
 } = require("../model/articles.model.js");
@@ -10,6 +11,16 @@ exports.getArticles = async (req, res, next) => {
     res.status(200).send({ articles });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.postArticle = async (req, res, next) => {
+  try {
+    const article = await insertArticle(req.body);
+    article.comment_count = 0
+    res.status(201).send({ article });
+  } catch (err) {
+    next(err)
   }
 };
 

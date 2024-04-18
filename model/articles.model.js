@@ -47,6 +47,48 @@ exports.selectArticles = async (queryParams) => {
   return rows;
 };
 
+exports.insertArticle = async ({
+  title,
+  topic,
+  author,
+  body,
+  article_img_url,
+}) => {
+  let queryStr = "INSERT INTO articles";
+  const queryValues = [title, topic, author, body];
+
+  if (article_img_url) {
+    queryStr += "(title, topic, author, body, article_img_url)";
+  } else {
+    queryStr += " (title, topic, author, body)";
+  }
+
+  queryStr += " VALUES";
+
+  if (article_img_url) {
+    queryStr += " ($1, $2, $3, $4, $5)";
+    queryValues.push(article_img_url);
+  } else {
+    queryStr += " ($1, $2, $3, $4)";
+  }
+
+  queryStr += " RETURNING *";
+  try {
+    const { rows } = await db.query(queryStr, queryValues);
+    return rows[0];
+  } catch (err) {
+    if (err.code === "23503") {
+      const topicExists = await checkExists("topics", "slug", topic);
+      if (!topicExists) {
+        return Promise.reject({ status: 404, msg: "topic not found" });
+      } else {
+        return Promise.reject({ status: 404, msg: "author not found" });
+      }
+    }
+    throw err;
+  }
+};
+
 exports.selectArticleById = async (id) => {
   const { rows } = await db.query(
     `SELECT articles.article_id, title, topic, articles.author, articles.body, articles.created_at, articles.votes, article_img_url, COUNT(comment_id)::INT AS comment_count

@@ -202,6 +202,100 @@ describe("/api/articles", () => {
       });
     });
   });
+
+  describe("POST", () => {
+    test("201: responds with newly created article with votes and comment_count initialised to 0", () => {
+      const testBody = {
+        title: "Test Article",
+        topic: "mitch",
+        author: "butter_bridge",
+        body: "Test test test...",
+        article_img_url: "https://test.com/images/5252/test.png",
+      };
+      const expected = {
+        article_id: 14,
+        title: "Test Article",
+        topic: "mitch",
+        author: "butter_bridge",
+        body: "Test test test...",
+        article_img_url: "https://test.com/images/5252/test.png",
+        created_at: expect.any(String),
+        votes: 0,
+        comment_count: 0,
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(testBody)
+        .expect(201)
+        .then(({ body: { article } }) => {
+          expect(article).toMatchObject(expected);
+        });
+    });
+
+    test("201: article_img_url reverts to default if not given", () => {
+      const testBody = {
+        title: "Test Article",
+        topic: "mitch",
+        author: "butter_bridge",
+        body: "Test test test...",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(testBody)
+        .then(({ body: { article } }) => {
+          expect(article.article_img_url).toBe(
+            "https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700"
+          );
+        });
+    });
+
+    test("400: when request body is missing a parameter", () => {
+      const testBody = {
+        title: "Test Article",
+        topic: "mitch",
+        author: "butter_bridge",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("404: when given author doesn't exist", () => {
+      const testBody = {
+        title: "Test Article",
+        topic: "mitch",
+        author: "missing_username",
+        body: "Test test test...",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(testBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("author not found");
+        });
+    });
+
+    test("404: when given topic doesn't exist", () => {
+      const testBody = {
+        title: "Test Article",
+        topic: "not_a_topic",
+        author: "butter_bridge",
+        body: "Test test test...",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(testBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("topic not found");
+        });
+    });
+  });
 });
 
 describe("/api/articles/:article_id", () => {
