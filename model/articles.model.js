@@ -2,8 +2,24 @@ const db = require("../db/connection");
 const { checkExists } = require("./utils.model");
 
 exports.selectArticles = async (queryParams) => {
-  const { topic } = queryParams;
+  const { topic, order = "desc" } = queryParams;
+  let { sort_by = "created_at" } = queryParams;
   const values = [];
+
+  const validCols = [
+    "article_id",
+    "title",
+    "topic",
+    "author",
+    "created_at",
+    "votes",
+    "article_img_url",
+    "comment_count",
+  ];
+  const validOrders = ["asc", "desc"];
+  if (!validCols.includes(sort_by) || !validOrders.includes(order)) {
+    return Promise.reject({ status: 400, msg: "bad request" });
+  }
 
   let queryStr = `SELECT articles.article_id, title, topic, articles.author, articles.created_at, articles.votes, article_img_url, COUNT(comment_id)::INT AS comment_count
   FROM articles
@@ -15,8 +31,9 @@ exports.selectArticles = async (queryParams) => {
     values.push(topic);
   }
 
-  queryStr += ` GROUP BY articles.article_id
-  ORDER BY articles.created_at DESC`;
+  queryStr += " GROUP BY articles.article_id";
+
+  queryStr += ` ORDER BY ${sort_by} ${order.toUpperCase()}`;
 
   const { rows } = await db.query(queryStr, values);
 

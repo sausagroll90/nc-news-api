@@ -75,7 +75,7 @@ describe("/api/articles", () => {
         });
     });
 
-    test("200: articles should be sorted by date in descending order", () => {
+    test("200: articles should be sorted by date in descending order by default", () => {
       return request(app)
         .get("/api/articles")
         .expect(200)
@@ -93,45 +93,113 @@ describe("/api/articles", () => {
         });
     });
 
-    test("200: topic query: should only list articles with given topic", () => {
-      return request(app)
-        .get("/api/articles?topic=cats")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(1);
-          expect(articles[0].topic).toBe("cats");
-        });
-    });
-
-    test("200: topic query: results should still be in descending date order", () => {
-      return request(app)
-        .get("/api/articles?topic=mitch")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(12);
-          articles.forEach((article) => {
-            expect(article.topic).toBe("mitch");
+    describe("?topic", () => {
+      test("200: should only list articles with given topic", () => {
+        return request(app)
+          .get("/api/articles?topic=cats")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(1);
+            expect(articles[0].topic).toBe("cats");
           });
-          expect(articles).toBeSortedBy("created_at", { descending: true });
-        });
+      });
+
+      test("200: results should still be in descending date order", () => {
+        return request(app)
+          .get("/api/articles?topic=mitch")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(12);
+            articles.forEach((article) => {
+              expect(article.topic).toBe("mitch");
+            });
+            expect(articles).toBeSortedBy("created_at", { descending: true });
+          });
+      });
+
+      test("404: when given topic that doesn't exist", () => {
+        return request(app)
+          .get("/api/articles?topic=nonexistant_topic")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("topic not found");
+          });
+      });
+
+      test("200: when topic exists but doesn't have any articles", () => {
+        return request(app)
+          .get("/api/articles?topic=paper")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(0);
+          });
+      });
     });
 
-    test("404: topic query: when given topic that doesn't exist", () => {
-      return request(app)
-        .get("/api/articles?topic=nonexistant_topic")
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("topic not found");
-        });
-    });
+    describe("?sort_by, ?order", () => {
+      test("200: sorts by given column, defaults to descending order", () => {
+        const test1 = request(app)
+          .get("/api/articles?sort_by=votes")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(13);
+            expect(articles).toBeSortedBy("votes", { descending: true });
+          });
+        const test2 = request(app)
+          .get("/api/articles?sort_by=comment_count")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(13);
+            expect(articles).toBeSortedBy("comment_count", {
+              descending: true,
+            });
+          });
+        return Promise.all([test1, test2]);
+      });
 
-    test("200: topic query: when topic exists but doesn't have any articles", () => {
-      return request(app)
-        .get("/api/articles?topic=paper")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles.length).toBe(0);
-        });
+      test("200: orders results in given order", () => {
+        const test1 = request(app)
+          .get("/api/articles?order=asc")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(13);
+            expect(articles).toBeSortedBy("created_at");
+          });
+        const test2 = request(app)
+          .get("/api/articles?sort_by=title&order=asc")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(13);
+            expect(articles).toBeSortedBy("title");
+          });
+        const test3 = request(app)
+          .get("/api/articles?sort_by=comment_count&order_by=desc")
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(13);
+            expect(articles).toBeSortedBy("comment_count", {
+              descending: true,
+            });
+          });
+        return Promise.all([test1, test2, test3]);
+      });
+
+      test("400: when column passed to sort_by doesn't exist", () => {
+        return request(app)
+          .get("/api/articles?sort_by=invalid_col")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("bad request");
+          });
+      });
+
+      test("400: when given order isn't asc or desc", () => {
+        return request(app)
+          .get("/api/articles?order=fkdjfhj")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("bad request");
+          });
+      });
     });
   });
 });
