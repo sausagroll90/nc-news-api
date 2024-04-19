@@ -108,27 +108,39 @@ describe("formatComments", () => {
 });
 
 describe("checkExists", () => {
-  const mockValue1 = { rows: ["test"] };
-  const mockValue2 = { rows: [] };
-  db.query
-    .mockResolvedValueOnce(mockValue1)
-    .mockResolvedValueOnce(mockValue1)
-    .mockResolvedValueOnce(mockValue2)
-    .mockResolvedValueOnce(mockValue2);
-
   test("resolves to true if given table contains row where given column = given value", async () => {
+    db.query.mockResolvedValue({ rows: ["test"] });
+
     const articleExists = await checkExists("articles", "article_id", 3);
     expect(articleExists).toBe(true);
+    expect(db.query).toHaveBeenCalledWith(
+      "SELECT * FROM articles WHERE article_id=$1",
+      [3]
+    );
 
     const topicExists = await checkExists("topics", "slug", "mitch");
     expect(topicExists).toBe(true);
+    expect(db.query).toHaveBeenCalledWith(
+      "SELECT * FROM topics WHERE slug=$1",
+      ["mitch"]
+    );
   });
 
   test("resolves to false if given table doesn't contain row where given column = given value", async () => {
+    db.query.mockResolvedValue({ rows: [] });
+
     const articleExists = await checkExists("articles", "article_id", 99999);
     expect(articleExists).toBe(false);
+    expect(db.query).toHaveBeenCalledWith(
+      "SELECT * FROM articles WHERE article_id=$1",
+      [99999]
+    );
 
     const userExists = await checkExists("users", "username", "BigDog777");
     expect(userExists).toBe(false);
+    expect(db.query).toHaveBeenCalledWith(
+      "SELECT * FROM users WHERE username=$1",
+      ["BigDog777"]
+    );
   });
 });
