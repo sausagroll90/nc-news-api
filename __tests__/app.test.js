@@ -1049,3 +1049,23 @@ describe("/api/users/:username", () => {
     });
   });
 });
+
+describe("405 method not allowed errors", () => {
+  test("sending unsupported method to an endpoint results in a 405 response", () => {
+    return request(app).delete("/api/articles").expect(405);
+  });
+
+  test("response header has allow field with allowed responses", () => {
+    const test1 = request(app)
+      .delete("/api/articles")
+      .expect(405)
+      .expect("Allow", "GET, POST");
+
+    const test2 = request(app)
+      .patch("/api/users")
+      .expect(405)
+      .expect("Allow", "GET");
+
+    return Promise.all([test1, test2]);
+  });
+});
