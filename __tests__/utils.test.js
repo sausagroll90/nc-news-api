@@ -4,7 +4,7 @@ const {
   createRef,
   formatComments,
 } = require("../db/seeds/utils");
-const { checkExists } = require("../model/utils.model");
+const { checkExists, handleSimple404 } = require("../model/utils.model");
 
 jest.mock("../db/connection");
 
@@ -142,5 +142,66 @@ describe("checkExists", () => {
       "SELECT * FROM users WHERE username=$1",
       ["BigDog777"]
     );
+  });
+});
+
+describe("handleSimple404", () => {
+  test("returns a function", async () => {
+    const mockModel = jest.fn();
+    const mockModelWith404Handling = handleSimple404(mockModel);
+    expect(typeof mockModelWith404Handling).toBe("function");
+  });
+
+  test("passed function is called and returns as normal", async () => {
+    const mockModel = jest.fn().mockResolvedValue(["test"]);
+    const mockModelWith404Handling = handleSimple404(mockModel);
+    const output = await mockModelWith404Handling();
+    expect(mockModel).toHaveBeenCalled();
+    expect(output).toEqual(["test"]);
+  });
+
+  test("also works when passed a function which returns a single value rather than an array", async () => {
+    const mockModel = jest.fn().mockResolvedValue("test");
+    const mockModelWith404Handling = handleSimple404(mockModel);
+    const output = await mockModelWith404Handling();
+    expect(mockModel).toHaveBeenCalled();
+    expect(output).toEqual("test");
+  });
+
+  test("returned function passes it's arguments to passed function when called", async () => {
+    const mockModel = jest.fn().mockResolvedValue(["test"]);
+    const mockModelWith404Handling = handleSimple404(mockModel);
+    await mockModelWith404Handling(3, {
+      name: "test",
+      topic: "testing",
+    });
+    expect(mockModel).toHaveBeenCalledWith(3, {
+      name: "test",
+      topic: "testing",
+    });
+  });
+
+  test("if passed function returns empty array, return promise which rejects with given 404 message", async () => {
+    const mockModel = jest.fn().mockResolvedValue([]);
+    const mockModelWith404Handling = handleSimple404(
+      mockModel,
+      "article not found"
+    );
+    expect(mockModelWith404Handling()).rejects.toEqual({
+      status: 404,
+      msg: "article not found",
+    });
+  });
+
+  test("if passed function returns undefined, return promise which rejects with 404 message", async () => {
+    const mockModel = jest.fn().mockResolvedValue(undefined);
+    const mockModelWith404Handling = handleSimple404(
+      mockModel,
+      "user not found"
+    );
+    expect(mockModelWith404Handling()).rejects.toEqual({
+      status: 404,
+      msg: "user not found",
+    });
   });
 });
