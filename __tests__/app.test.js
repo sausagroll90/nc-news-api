@@ -202,8 +202,8 @@ describe("/api/articles", () => {
       });
     });
 
-    describe("?p, ?limit", () => {
-      test("200: responds with articles paginated with given page number b, limit defaults to 10", () => {
+    describe("pagination", () => {
+      test("200: responds with articles paginated with given page number p, limit defaults to 10", () => {
         const test1 = request(app)
           .get("/api/articles?p=1")
           .expect(200)
@@ -591,6 +591,80 @@ describe("/api/articles/:article_id/comments", () => {
           const { comments } = body;
           expect(comments).toEqual([]);
         });
+    });
+
+    describe("pagination", () => {
+      test("200: responds with comments paginated with given page number p, limit defaults to 10", () => {
+        return request(app)
+          .get("/api/articles/1/comments?p=1")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).toBe(10);
+          });
+      });
+
+      test("200: can use limit query parameter to limit comments shown per page", () => {
+        return request(app)
+          .get("/api/articles/1/comments?p=2&limit=3")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).toBe(3);
+          });
+      });
+
+      test("200: last page may have fewer comments than the limit", () => {
+        const test1 = request(app)
+          .get("/api/articles/1/comments?p=2")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).toBe(1);
+          });
+
+        const test2 = request(app)
+          .get("/api/articles/9/comments?p=1&limit=5")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).toBe(2);
+          });
+
+        return Promise.all([test1, test2]);
+      });
+
+      test("400: invalid p", () => {
+        return request(app)
+          .get("/api/articles/1/comments?p=test_invalid")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("bad request");
+          });
+      });
+
+      test("400: invalid limit", () => {
+        return request(app)
+          .get("/api/articles/1/comments?p=1&limit=test_invalid")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("bad request");
+          });
+      });
+
+      test("404: when no comments are returned", () => {
+        return request(app)
+          .get("/api/articles/1/comments?p=3&limit=10")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("page not found");
+          });
+      });
+
+      test("200: if article has no comments, then p=1 returns empty array", () => {
+        return request(app)
+          .get("/api/articles/2/comments?p=1")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toEqual([]);
+          });
+      });
     });
   });
 
