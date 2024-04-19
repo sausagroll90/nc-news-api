@@ -357,6 +357,15 @@ describe("/api/articles", () => {
 
         return Promise.all([test1, test2]);
       });
+
+      test("200: total_count is 0 when topic has no articles", () => {
+        return request(app)
+          .get("/api/articles?topic=paper")
+          .expect(200)
+          .then(({ body: { total_count } }) => {
+            expect(total_count).toBe(0);
+          });
+      });
     });
   });
 
