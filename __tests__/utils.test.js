@@ -1,8 +1,12 @@
+const db = require("../db/connection");
 const {
   convertTimestampToDate,
   createRef,
   formatComments,
 } = require("../db/seeds/utils");
+const { checkExists } = require("../model/utils.model");
+
+jest.mock("../db/connection");
 
 describe("convertTimestampToDate", () => {
   test("returns a new object", () => {
@@ -100,5 +104,31 @@ describe("formatComments", () => {
     const comments = [{ created_at: timestamp }];
     const formattedComments = formatComments(comments, {});
     expect(formattedComments[0].created_at).toEqual(new Date(timestamp));
+  });
+});
+
+describe("checkExists", () => {
+  const mockValue1 = { rows: ["test"] };
+  const mockValue2 = { rows: [] };
+  db.query
+    .mockResolvedValueOnce(mockValue1)
+    .mockResolvedValueOnce(mockValue1)
+    .mockResolvedValueOnce(mockValue2)
+    .mockResolvedValueOnce(mockValue2);
+
+  test("resolves to true if given table contains row where given column = given value", async () => {
+    const articleExists = await checkExists("articles", "article_id", 3);
+    expect(articleExists).toBe(true);
+
+    const topicExists = await checkExists("topics", "slug", "mitch");
+    expect(topicExists).toBe(true);
+  });
+
+  test("resolves to false if given table doesn't contain row where given column = given value", async () => {
+    const articleExists = await checkExists("articles", "article_id", 99999);
+    expect(articleExists).toBe(false);
+
+    const userExists = await checkExists("users", "username", "BigDog777");
+    expect(userExists).toBe(false);
   });
 });
