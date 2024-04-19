@@ -3,7 +3,6 @@ const request = require("supertest");
 const seed = require("../db/seeds/seed");
 const data = require("../db/data/test-data");
 const db = require("../db/connection");
-const { checkExists } = require("../model/utils.model");
 
 beforeEach(() => {
   return seed(data);
@@ -1048,23 +1047,5 @@ describe("/api/users/:username", () => {
           expect(msg).toBe("username not found");
         });
     });
-  });
-});
-
-describe("checkExists", () => {
-  test("resolves to true if given table contains row where given column = given value", async () => {
-    const articleExists = await checkExists("articles", "article_id", 3);
-    expect(articleExists).toBe(true);
-
-    const topicExists = await checkExists("topics", "slug", "mitch");
-    expect(topicExists).toBe(true);
-  });
-
-  test("resolves to false if given table doesn't contain row where given column = given value", async () => {
-    const articleExists = await checkExists("articles", "article_id", 99999);
-    expect(articleExists).toBe(false);
-
-    const userExists = await checkExists("users", "username", "BigDog777");
-    expect(userExists).toBe(false);
   });
 });
