@@ -38,18 +38,68 @@ describe("/api", () => {
 });
 
 describe("/api/topics", () => {
-  test("GET 200: reponds with all topics", () => {
-    return request(app)
-      .get("/api/topics/")
-      .expect(200)
-      .then(({ body }) => {
-        const { topics } = body;
-        expect(topics.length).toBe(3);
-        topics.forEach((topic) => {
-          expect(typeof topic.slug).toBe("string");
-          expect(typeof topic.description).toBe("string");
+  describe("GET", () => {
+    test("200: responds with all topics", () => {
+      return request(app)
+        .get("/api/topics/")
+        .expect(200)
+        .then(({ body }) => {
+          const { topics } = body;
+          expect(topics.length).toBe(3);
+          topics.forEach((topic) => {
+            expect(typeof topic.slug).toBe("string");
+            expect(typeof topic.description).toBe("string");
+          });
         });
-      });
+    });
+  });
+
+  describe("POST", () => {
+    test("201: responds with newly created topic", () => {
+      const testBody = {
+        slug: "test topic",
+        description: "test topic description",
+      };
+      const expected = {
+        slug: "test topic",
+        description: "test topic description",
+      };
+      return request(app)
+        .post("/api/topics")
+        .send(testBody)
+        .expect(201)
+        .then(({ body: { topic } }) => {
+          expect(topic).toMatchObject(expected);
+        });
+    });
+
+    test("201: request body doesn't need a description", () => {
+      const testBody = {
+        slug: "test topic",
+      };
+      const expected = {
+        slug: "test topic",
+        description: null,
+      };
+      return request(app)
+        .post("/api/topics")
+        .send(testBody)
+        .expect(201)
+        .then(({ body: { topic } }) => {
+          expect(topic).toMatchObject(expected);
+        });
+    });
+
+    test("400: when slug is missing from request body", () => {
+      const testBody = { description: "test topic description" };
+      return request(app)
+        .post("/api/topics")
+        .send(testBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
   });
 });
 
