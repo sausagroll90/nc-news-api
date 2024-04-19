@@ -1,18 +1,30 @@
 const db = require("../db/connection");
 const { checkExists } = require("./utils.model");
 
-exports.selectCommentsByArticleId = async (id) => {
-  const { rows } = await db.query(
-    `SELECT comment_id, body, author, article_id, created_at, votes
-    FROM comments
-    WHERE article_id=$1
-    ORDER BY created_at DESC`,
-    [id]
-  );
+exports.selectCommentsByArticleId = async (id, queryParams) => {
+  const { p, limit = 10 } = queryParams;
+
+  let queryStr = `SELECT comment_id, body, author, article_id, created_at, votes
+  FROM comments
+  WHERE article_id=$1
+  ORDER BY created_at DESC`;
+  const queryValues = [id];
+
+  if (p) {
+    queryStr += " LIMIT $2 OFFSET $3";
+    queryValues.push(limit);
+    queryValues.push((p - 1) * limit);
+  }
+
+  const { rows } = await db.query(queryStr, queryValues);
+
   if (rows.length === 0) {
     const articleExists = await checkExists("articles", "article_id", id);
     if (!articleExists) {
       return Promise.reject({ status: 404, msg: "article not found" });
+    }
+    if (p > 1) {
+      return Promise.reject({ status: 404, msg: "page not found" });
     }
   }
   return rows;
