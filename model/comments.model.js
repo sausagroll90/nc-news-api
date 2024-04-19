@@ -1,5 +1,5 @@
 const db = require("../db/connection");
-const { checkExists } = require("./utils.model");
+const { checkExists, handleSimple404 } = require("./utils.model");
 
 exports.selectCommentsByArticleId = async (id, queryParams) => {
   const { p, limit = 10 } = queryParams;
@@ -60,7 +60,7 @@ exports.insertComment = async (requestBody, article_id) => {
   return rows[0];
 };
 
-exports.updateCommentVotes = async (id, { inc_votes }) => {
+const naiveUpdateCommentVotes = async (id, { inc_votes }) => {
   const { rows } = await db.query(
     `UPDATE comments
     SET votes=votes+$1
@@ -68,18 +68,23 @@ exports.updateCommentVotes = async (id, { inc_votes }) => {
     RETURNING comment_id, body, author, article_id, created_at, votes`,
     [inc_votes, id]
   );
-  if (rows.length === 0) {
-    return Promise.reject({ status: 404, msg: "comment not found" });
-  }
   return rows[0];
 };
 
-exports.removeComment = async (id) => {
+exports.updateCommentVotes = handleSimple404(
+  naiveUpdateCommentVotes,
+  "comment not found"
+);
+
+const naiveRemoveComment = async (id) => {
   const { rows } = await db.query(
     "DELETE FROM comments WHERE comment_id=$1 RETURNING *",
     [id]
   );
-  if (rows.length === 0) {
-    return Promise.reject({ status: 404, msg: "comment not found" });
-  }
+  return rows[0];
 };
+
+exports.removeComment = handleSimple404(
+  naiveRemoveComment,
+  "comment not found"
+);

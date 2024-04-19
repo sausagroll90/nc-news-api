@@ -1,5 +1,5 @@
 const db = require("../db/connection");
-const { checkExists } = require("./utils.model");
+const { checkExists, handleSimple404 } = require("./utils.model");
 
 exports.selectArticles = async (queryParams) => {
   const { topic, order = "desc", p, limit = 10 } = queryParams;
@@ -116,7 +116,7 @@ exports.insertArticle = async ({
   }
 };
 
-exports.selectArticleById = async (id) => {
+const naiveSelectArticleById = async (id) => {
   const { rows } = await db.query(
     `SELECT articles.article_id, title, topic, articles.author, articles.body, articles.created_at, articles.votes, article_img_url, COUNT(comment_id)::INT AS comment_count
     FROM articles
@@ -126,13 +126,15 @@ exports.selectArticleById = async (id) => {
     GROUP BY articles.article_id`,
     [id]
   );
-  if (rows.length === 0) {
-    return Promise.reject({ status: 404, msg: "article not found" });
-  }
   return rows[0];
 };
 
-exports.updateArticleVotes = async (id, { inc_votes }) => {
+exports.selectArticleById = handleSimple404(
+  naiveSelectArticleById,
+  "article not found"
+);
+
+const naiveUpdateArticleVotes = async (id, { inc_votes }) => {
   const { rows } = await db.query(
     `UPDATE articles
     SET votes=votes+$1
@@ -140,13 +142,15 @@ exports.updateArticleVotes = async (id, { inc_votes }) => {
     RETURNING article_id, title, topic, author, body, created_at, votes, article_img_url`,
     [inc_votes, id]
   );
-  if (rows.length === 0) {
-    return Promise.reject({ status: 404, msg: "article not found" });
-  }
   return rows[0];
 };
 
-exports.removeArticle = async (id) => {
+exports.updateArticleVotes = handleSimple404(
+  naiveUpdateArticleVotes,
+  "article not found"
+);
+
+const naiveRemoveArticle = async (id) => {
   await db.query(
     `DELETE FROM comments
     WHERE article_id=$1`,
@@ -158,7 +162,10 @@ exports.removeArticle = async (id) => {
     RETURNING *`,
     [id]
   );
-  if (rows.length === 0) {
-    return Promise.reject({status:404, msg:"article not found"})
-  }
+  return rows[0];
 };
+
+exports.removeArticle = handleSimple404(
+  naiveRemoveArticle,
+  "article not found"
+);
