@@ -3,6 +3,7 @@ const {
   insertArticle,
   selectArticleById,
   updateArticleVotes,
+  removeArticle,
 } = require("../model/articles.model.js");
 
 exports.getArticles = async (req, res, next) => {
@@ -39,6 +40,16 @@ exports.patchArticle = async (req, res, next) => {
   try {
     const article = await updateArticleVotes(article_id, req.body);
     res.status(200).send({ article });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteArticle = async (req, res, next) => {
+  const { article_id } = req.params;
+  try {
+    await removeArticle(article_id);
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

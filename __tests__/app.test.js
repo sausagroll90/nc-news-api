@@ -623,6 +623,30 @@ describe("/api/articles/:article_id", () => {
         });
     });
   });
+
+  describe("DELETE", () => {
+    test("204: on successful delete of article and it's comments", () => {
+      return request(app).delete("/api/articles/1").expect(204);
+    });
+
+    test("400: when given article_id is invalid", () => {
+      return request(app)
+        .delete("/api/articles/invalid_article")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("bad request");
+        });
+    });
+
+    test("404: when given article_id is valid but article doesn't exist", () => {
+      return request(app)
+        .delete("/api/articles/1000038")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("article not found");
+        });
+    });
+  });
 });
 
 describe("/api/articles/:article_id/comments", () => {
