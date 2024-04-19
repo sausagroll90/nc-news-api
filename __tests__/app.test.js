@@ -3,7 +3,7 @@ const request = require("supertest");
 const seed = require("../db/seeds/seed");
 const data = require("../db/data/test-data");
 const db = require("../db/connection");
-const { checkArticleExists, checkExists } = require("../model/utils.model");
+const { checkExists } = require("../model/utils.model");
 
 beforeEach(() => {
   return seed(data);
@@ -208,18 +208,16 @@ describe("/api/articles", () => {
           .get("/api/articles?p=1")
           .expect(200)
           .then(({ body }) => {
-            const { articles, total_count } = body;
+            const { articles } = body;
             expect(articles.length).toBe(10);
-            expect(total_count).toBe(10);
           });
 
         const test2 = request(app)
           .get("/api/articles?p=2")
           .expect(200)
           .then(({ body }) => {
-            const { articles, total_count } = body;
+            const { articles } = body;
             expect(articles.length).toBe(3);
-            expect(total_count).toBe(3);
           });
 
         return Promise.all([test1, test2]);
@@ -230,18 +228,16 @@ describe("/api/articles", () => {
           .get("/api/articles?p=1&limit=4")
           .expect(200)
           .then(({ body }) => {
-            const { articles, total_count } = body;
+            const { articles } = body;
             expect(articles.length).toBe(4);
-            expect(total_count).toBe(4);
           });
 
         const test2 = request(app)
           .get("/api/articles?p=2&limit=5")
           .expect(200)
           .then(({ body }) => {
-            const { articles, total_count } = body;
+            const { articles } = body;
             expect(articles.length).toBe(5);
-            expect(total_count).toBe(5);
           });
 
         return Promise.all([test1, test2]);
@@ -272,6 +268,44 @@ describe("/api/articles", () => {
           .then(({ body: { msg } }) => {
             expect(msg).toBe("bad request");
           });
+      });
+    });
+
+    describe("total_count", () => {
+      test("200: response object should have total_count property set to total number of articles returned ignoring pagination", () => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body: { total_count } }) => {
+            expect(total_count).toBe(13);
+          });
+      });
+
+      test("200: total_count ignores pagination", () => {
+        return request(app)
+          .get("/api/articles?p=1&limit=5")
+          .expect(200)
+          .then(({ body: { total_count } }) => {
+            expect(total_count).toBe(13);
+          });
+      });
+
+      test("200: total_count should only count filtered articles when using topic query", () => {
+        const test1 = request(app)
+          .get("/api/articles?topic=cats")
+          .expect(200)
+          .then(({ body: { total_count } }) => {
+            expect(total_count).toBe(1);
+          });
+
+        const test2 = request(app)
+          .get("/api/articles?topic=mitch&p=2&limit=5")
+          .expect(200)
+          .then(({ body: { total_count } }) => {
+            expect(total_count).toBe(12);
+          });
+
+        return Promise.all([test1, test2]);
       });
     });
   });

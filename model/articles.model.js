@@ -47,9 +47,9 @@ exports.selectArticles = async (queryParams) => {
     }
   }
 
-  const { rows } = await db.query(queryStr, queryValues);
+  const { rows: articles } = await db.query(queryStr, queryValues);
 
-  if (rows.length === 0) {
+  if (articles.length === 0) {
     if (!topic) {
       return Promise.reject({ status: 404, msg: "page not found" });
     }
@@ -59,7 +59,19 @@ exports.selectArticles = async (queryParams) => {
     }
   }
 
-  return rows;
+  let totalArticlesQueryStr =
+    "SELECT COUNT(*)::INT AS total_count FROM articles";
+  const totalArticlesQueryValues = [];
+  if (topic) {
+    totalArticlesQueryStr += " WHERE topic=$1";
+    totalArticlesQueryValues.push(topic);
+  }
+
+  const {
+    rows: [{ total_count }],
+  } = await db.query(totalArticlesQueryStr, totalArticlesQueryValues);
+
+  return { articles, total_count };
 };
 
 exports.insertArticle = async ({
